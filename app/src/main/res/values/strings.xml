@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AircraftWar</string>
+    <string name="mainPage_easy">简单模式</string>
+    <string name="mainPage_normal">普通模式</string>
+    <string name="mainPage_hard">困难模式</string>
+    <string name="music_switch">音效开关</string>
 </resources>
