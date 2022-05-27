@@ -34,8 +34,8 @@ import java.util.concurrent.TimeUnit;
 public class GameView extends SurfaceView{
 
     private static final String TAG = GameView.class.getSimpleName();
-    public int screenWidth;
-    public int screenHeight;
+    private int screenWidth = GameActivity.screenWidth;
+    private int screenHeight = GameActivity.screenHeight;
 
     private Canvas canvas;
     private Paint mPaint;
@@ -108,6 +108,7 @@ public class GameView extends SurfaceView{
 
     public GameView(Context context, String mode){
         super(context);
+
         mPaint = new Paint();
         mSurfaceHolder = getHolder();
         loadingImg();
@@ -142,11 +143,10 @@ public class GameView extends SurfaceView{
             return t;
         };
         executorService = new ScheduledThreadPoolExecutor(1, gameThread);
-
     }
 
     public GameView(Context context){
-        this(context, EASY);
+        this(context, NORMAL);
     }
 
     /**
@@ -209,6 +209,8 @@ public class GameView extends SurfaceView{
                 // 输入姓名
 //                String name = JOptionPane.showInputDialog(this, "输入姓名或放弃成绩","游戏结束",
 //                        JOptionPane.QUESTION_MESSAGE);
+//                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+//                builder.setMessage(R.string.di)
 
 //                if (name != null) {
 //                    // 保存得分信息
@@ -523,7 +525,7 @@ public class GameView extends SurfaceView{
      */
     public void setBackgroundImage(String bg){
         int bgId = getResources().getIdentifier(bg, "drawable", "com.example.aircraftwar");
-        ImageManager.BACKGROUND_IMAGE = BitmapFactory.decodeResource(getResources(), R.drawable.bg);
+        ImageManager.BACKGROUND_IMAGE = BitmapFactory.decodeResource(getResources(), bgId);
     }
 
     public void draw() {
@@ -534,12 +536,14 @@ public class GameView extends SurfaceView{
 
         // 清除上一次绘制内容
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        Log.i(TAG, "Canvas clear");
         // 绘制背景，图片滚动
         canvas.drawBitmap(ImageManager.BACKGROUND_IMAGE, 0, backGroundTop - ImageManager.BACKGROUND_IMAGE.getHeight(), mPaint);
         canvas.drawBitmap(ImageManager.BACKGROUND_IMAGE, 0, backGroundTop, mPaint);
         backGroundTop += 1;
-        if(backGroundTop == screenHeight) {
+        if(backGroundTop == ImageManager.BACKGROUND_IMAGE.getHeight()) {
             backGroundTop = 0;
+            Log.i(TAG, "BackgroundTop = 0, screenHeight = " + screenHeight);
         }
 
         // 先绘制子弹，后绘制飞机，再绘制道具掉落
@@ -585,4 +589,5 @@ public class GameView extends SurfaceView{
         y = y + 70;
         canvas.drawText("LIFE:" + this.heroAircraft.getHp(), x, y, mPaint);
     }
+
 }

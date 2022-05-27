@@ -13,6 +13,7 @@ import com.example.aircraftwar.aircraft.HeroAircraft;
 public class GameActivity extends AppCompatActivity {
 
     private static final String TAG = GameActivity.class.getSimpleName();
+    private String mode;
     public static int screenWidth;
     public static int screenHeight;
 
@@ -21,8 +22,23 @@ public class GameActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getScreenHW();
+
+        mode = getIntent().getStringExtra("mode");
+        switch (mode) {
+            case GameView.EASY:
+                gameView = new EasyGameView(this);
+                break;
+            case GameView.NORMAL:
+                gameView = new NormalGameView(this);
+                break;
+            case GameView.HARD:
+                gameView = new HardGameView(this);
+                break;
+            default:
+        }
+
         setContentView(R.layout.activity_game);
-        gameView = new GameView(this, GameView.EASY);
+
         setContentView(gameView);
 
         gameView.action();
@@ -31,7 +47,7 @@ public class GameActivity extends AppCompatActivity {
     /**
      * 获得窗口的宽度和高度
      */
-    public void getScreenHW(){
+    private void getScreenHW(){
         // 定义 DisplayMetrics 对象
         DisplayMetrics dm = new DisplayMetrics();
         // 获得窗口属性

@@ -25,7 +25,7 @@ public class BossEnemyFactory extends AbstractEnemyFactory {
         return new BossEnemy(
                         ((GameActivity.screenHeight) / 2),
                         (ImageManager.BOSS_ENEMY_IMAGE.getHeight() / 2),
-                        new Random().nextInt(6) - 3,
+                        new Random().nextInt(10) - 5,
                         0,
                         bossHp
                 );

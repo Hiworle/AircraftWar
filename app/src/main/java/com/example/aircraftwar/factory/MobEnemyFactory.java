@@ -16,7 +16,7 @@ public class MobEnemyFactory extends AbstractEnemyFactory {
                 (int) (Math.random() * (GameActivity.screenWidth - ImageManager.MOB_ENEMY_IMAGE.getWidth())),
                 (int) (Math.random() * GameActivity.screenHeight * 0.2),
                 0,
-                3,
+                12,
                 20);
     }
 }

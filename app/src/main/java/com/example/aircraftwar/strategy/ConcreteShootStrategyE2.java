@@ -27,12 +27,12 @@ public class ConcreteShootStrategyE2 implements ShootStrategy{
         int x = aircraft.getLocationX();
         int y = aircraft.getLocationY() + direction*2;
         int[] speedX = {-1,0,1};
-        int speedY = direction*8;
+        int speedY = direction*20;
         BaseBullet bullet;
         for(int i=0; i<shootNum; i++){
             // 子弹发射位置相对飞机位置向前偏移
             // 多个子弹横向分散
-            bullet = new EnemyBullet(x + (i*2 - shootNum + 1)*10, y, speedX[i]*5, speedY, power);
+            bullet = new EnemyBullet(x + (i*2 - shootNum + 1)*10, y, speedX[i]*4, speedY, power);
             res.add(bullet);
         }
         return res;

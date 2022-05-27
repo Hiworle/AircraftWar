@@ -17,8 +17,8 @@ public class EliteEnemyFactory extends AbstractEnemyFactory {
         return new EliteEnemy(
                 (int) (Math.random() * (GameActivity.screenWidth - ImageManager.ELITE_ENEMY_IMAGE.getWidth())),
                 (int) (Math.random() * GameActivity.screenHeight * 0.2),
-                new Random().nextInt(20) - 10,
-                5,
+                new Random().nextInt(40) - 20,
+                10,
                 30);
     }
 }

@@ -27,7 +27,7 @@ public class ConcreteShootStrategyE1 implements ShootStrategy{
         int x = aircraft.getLocationX();
         int y = aircraft.getLocationY() + direction*2;
         int speedX = 0;
-        int speedY = direction*8;
+        int speedY = direction*28;
         BaseBullet bullet;
         for(int i=0; i<shootNum; i++){
             // 子弹发射位置相对飞机位置向前偏移

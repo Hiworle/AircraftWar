@@ -27,12 +27,12 @@ public class ConcreteShootStrategyH3 implements ShootStrategy{
         int x = aircraft.getLocationX();
         int y = aircraft.getLocationY() + direction*2;
         int[] speedX = {-1, 0, 1};
-        int speedY = aircraft.getSpeedY() + direction*5;
+        int speedY = direction*15;
         BaseBullet bullet;
         for(int i=0; i<shootNum; i++){
             // 子弹发射位置相对飞机位置向前偏移
             // x方向速度不同
-            bullet = new HeroBullet(x + (i*2 - shootNum + 1)*10, y, speedX[i]*3, speedY, power);
+            bullet = new HeroBullet(x + (i*2 - shootNum + 1)*10, y, speedX[i]*8, speedY, power);
             res.add(bullet);
         }
         return res;
