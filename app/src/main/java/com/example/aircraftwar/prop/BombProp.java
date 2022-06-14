@@ -66,8 +66,8 @@ public class BombProp extends AbstractProp{
         // 炸毁一切订阅者，获得炸毁后的得分
         int score = bombAll();
 
-        // 清屏道具音效
-//        MusicManager.playSoundEffect("src/videos/bomb_explosion.wav");
+        // 清屏道具音效，在gameView中实现
+
 
         return score;
     }

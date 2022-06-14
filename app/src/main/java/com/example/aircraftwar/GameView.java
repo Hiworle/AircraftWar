@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 import com.example.aircraftwar.aircraft.AbstractAircraft;
 import com.example.aircraftwar.aircraft.HeroAircraft;
 import com.example.aircraftwar.application.ImageManager;
+import com.example.aircraftwar.application.MusicService;
 import com.example.aircraftwar.basic.AbstractFlyingObject;
 import com.example.aircraftwar.bullet.BaseBullet;
 import com.example.aircraftwar.factory.AbstractEnemyFactory;
@@ -41,6 +42,10 @@ public class GameView extends SurfaceView{
     private Paint mPaint;
     private SurfaceHolder mSurfaceHolder;
 
+    private Context context;
+    private GameActivity gameActivity;
+    public static boolean ifMusicOn = true;
+
     public static final String HARD = "HARD";
     public static final String NORMAL = "NORMAL";
     public static final String EASY = "EASY";
@@ -51,8 +56,8 @@ public class GameView extends SurfaceView{
     /**
      * 记录下一次触发boss战的阈值
      */
-    private int nextBossScore = 500;
-    private int nextBossDuration = 500;
+    private int nextBossScore = 50;
+    private int nextBossDuration = 50;
     private boolean bossBattle = false;
     private int bossHp = 400;
 
@@ -64,7 +69,7 @@ public class GameView extends SurfaceView{
     /**
      * 时间间隔(ms)，控制刷新频率
      */
-    private final int timeInterval = 40;
+    private final int timeInterval = 10;
 
     protected final HeroAircraft heroAircraft;
     protected final List<AbstractAircraft> enemyAircrafts;
@@ -108,6 +113,9 @@ public class GameView extends SurfaceView{
 
     public GameView(Context context, String mode){
         super(context);
+
+        this.context = context;
+        this.gameActivity = (GameActivity) context;
 
         mPaint = new Paint();
         mSurfaceHolder = getHolder();
@@ -153,6 +161,12 @@ public class GameView extends SurfaceView{
      * 游戏启动入口，执行游戏逻辑
      */
     public void action() {
+
+
+        //进入游戏，开始播放bgm
+//        MusicService.MyBinder binder = gameActivity.myBinder;
+//        binder.playBgm();
+
 
         // 定时任务：绘制、对象产生、碰撞判定、击毁及结束判定
         Runnable task = () -> {
@@ -201,10 +215,10 @@ public class GameView extends SurfaceView{
                 Log.i(TAG, "Game over!");
 
                 // 游戏结束音效
-//                MusicManager.playSoundEffect("src/videos/game_over.wav");
+                gameActivity.myBinder.playGameOver();
 
                 // 结束循环bgm
-//                MusicManager.letMusicOff();
+//                gameActivity.stopBgm();
 
                 // 输入姓名
 //                String name = JOptionPane.showInputDialog(this, "输入姓名或放弃成绩","游戏结束",
@@ -256,7 +270,7 @@ public class GameView extends SurfaceView{
                 bossBattle = false;
 
                 // boss被击败，bgm回来
-//                MusicManager.changeBgm("src/videos/bgm.wav");
+                gameActivity.myBinder.playBgm();
             }
 
         } else {
@@ -274,18 +288,17 @@ public class GameView extends SurfaceView{
 
                 enemyAircrafts.add(enemyFactory.createEnemy());
                 // boss机出现，bgm改变
-//                MusicManager.changeBgm("src/videos/bgm_boss.wav");
+                gameActivity.myBinder.playBossBgm();
 
             } else if(enemyAircrafts.size() < enemyMaxNumber){
                 if(Math.random() < eliteRate){
                     // 召唤精英敌机
                     enemyFactory = new EliteEnemyFactory();
-                    enemyAircrafts.add(enemyFactory.createEnemy());
                 } else {
                     // 召唤普通敌机
                     enemyFactory = new MobEnemyFactory();
-                    enemyAircrafts.add(enemyFactory.createEnemy());
                 }
+                enemyAircrafts.add(enemyFactory.createEnemy());
             }
         }
     }
@@ -367,7 +380,7 @@ public class GameView extends SurfaceView{
         heroBullets.addAll(heroAircraft.shoot());
 
         // 播放发射子弹音效
-//        MusicManager.playSoundEffect("src/videos/bullet.wav");
+        gameActivity.myBinder.playBullet();
     }
 
     private void bulletsMoveAction() {
@@ -427,7 +440,7 @@ public class GameView extends SurfaceView{
                     enemyAircraft.decreaseHp(bullet.getPower());
 
                     // 播放击中敌机声音
-//                    MusicManager.playSoundEffect("src/videos/bullet_hit.wav");
+                    gameActivity.myBinder.playBulletHit();
 
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
@@ -454,10 +467,12 @@ public class GameView extends SurfaceView{
         for(AbstractProp prop : props){
             if(prop.crash(heroAircraft) || heroAircraft.crash(prop)){
                 // 获得道具音效
-//                MusicManager.playSoundEffect("src/videos/get_supply.wav");
+                gameActivity.myBinder.playGetSupply();
 
                 // 清屏道具需要将炸毁物体添加到订阅
                 if(prop instanceof BombProp) {
+                    //炸弹音效
+                    gameActivity.myBinder.playBombExplosion();
                     BombProp bombProp = (BombProp) prop;
 
                     // 添加敌机子弹
@@ -589,5 +604,7 @@ public class GameView extends SurfaceView{
         y = y + 70;
         canvas.drawText("LIFE:" + this.heroAircraft.getHp(), x, y, mPaint);
     }
+
+
 
 }
