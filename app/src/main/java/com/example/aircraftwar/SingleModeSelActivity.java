@@ -7,7 +7,7 @@ import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class SingleModeSelActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -20,19 +20,19 @@ public class MainActivity extends AppCompatActivity {
         Button btnHard = (Button) findViewById(R.id.hardButton);
         Switch switchMusic = (Switch) findViewById(R.id.musicSwitch);
         btnEasy.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, GameActivity.class);
+            Intent intent = new Intent(SingleModeSelActivity.this, GameActivity.class);
             intent.putExtra("mode", GameView.EASY);
             startActivity(intent);
         });
 
         btnNormal.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, GameActivity.class);
+            Intent intent = new Intent(SingleModeSelActivity.this, GameActivity.class);
             intent.putExtra("mode", GameView.NORMAL);
             startActivity(intent);
         });
 
         btnHard.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, GameActivity.class);
+            Intent intent = new Intent(SingleModeSelActivity.this, GameActivity.class);
             intent.putExtra("mode", GameView.HARD);
             startActivity(intent);
         });

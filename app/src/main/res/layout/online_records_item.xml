@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:id="@+id/ranking"
+        android:layout_width="30dp"
+        android:layout_height="80dp"
+
+        android:layout_gravity="center"
+        android:layout_marginStart="5dp"
+        android:gravity="center"
+        android:text="player_rank"
+        android:textColor="#ff0000"
+        android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/total_score"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+
+        android:layout_gravity="center"
+        android:layout_marginStart="5dp"
+        android:gravity="center"
+        android:text="score"
+        android:textColor="#ff0000"
+        android:textSize="26sp" />
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="20dp"
+        android:orientation="vertical">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/your_name"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+
+                android:layout_gravity="center"
+                android:layout_marginStart="10dp"
+                android:gravity="center"
+                android:text="player_name"
+                android:textColor="#000000"
+
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/your_score"
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
+
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:gravity="center"
+
+                android:text="player_score"
+                android:textColor="#000000"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/other_name"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+
+                android:layout_gravity="center"
+                android:layout_marginStart="10dp"
+                android:gravity="center"
+                android:text="player_name"
+                android:textColor="#000000"
+
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/other_score"
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
+
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:gravity="center"
+
+                android:text="player_score"
+                android:textColor="#000000"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</LinearLayout>

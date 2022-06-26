@@ -15,4 +15,8 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- Disable background dim for AlertDialog -->
+    <style name="NoDimAlertDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
 </resources>

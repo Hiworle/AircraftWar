@@ -1,5 +1,6 @@
-package com.example.aircraftwar;
+package com.example.aircraftwar.online;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,27 +11,28 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
+import com.example.aircraftwar.R;
 import com.example.aircraftwar.aircraft.HeroAircraft;
 import com.example.aircraftwar.application.MusicService;
 
-public class GameActivity extends AppCompatActivity {
-
-    private static final String TAG = GameActivity.class.getSimpleName();
+public class OnlineGameActivity extends Activity {
+    private static final String TAG = OnlineGameActivity.class.getSimpleName();
     public static String playerName;
-    private String mode;
     public static int screenWidth;
     public static int screenHeight;
 
     public MusicService.MyBinder myBinder;
-    private Connect conn;
+    private OnlineGameActivity.Connect conn;
     private Intent intent;
 
-    private GameView gameView;
+    private OnlineGameView gameView;
+
+    // 子按钮列表
+//    private List<ImageButton> buttonItems = new ArrayList<ImageButton>(3);
+
+    //    private ImageButton skill_btn,btn_hp,btn_bullet,btn_bomb,btn_shield;
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getScreenHW();
 
@@ -40,20 +42,6 @@ public class GameActivity extends AppCompatActivity {
         intent = new Intent(this,MusicService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
 
-        mode = getIntent().getStringExtra("mode");
-        switch (mode) {
-            case GameView.EASY:
-
-                gameView = new EasyGameView(this);
-                break;
-            case GameView.NORMAL:
-                gameView = new NormalGameView(this);
-                break;
-            case GameView.HARD:
-                gameView = new HardGameView(this);
-                break;
-            default:
-        }
 
         //GameView.ifMusicOn = getIntent().getBooleanExtra("music", true);
 
@@ -61,10 +49,9 @@ public class GameActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_game);
 
+        gameView = new OnlineGameView(this);
         setContentView(gameView);
-
         gameView.action();
-
     }
 
     /**

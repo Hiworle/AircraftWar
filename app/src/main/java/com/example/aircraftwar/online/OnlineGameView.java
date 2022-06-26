@@ -1,7 +1,12 @@
-package com.example.aircraftwar;
+package com.example.aircraftwar.online;
+
+//import static com.hit.aircraftwar_base.stand_alone_pack.GameActivity.musicService;
 
 import static com.example.aircraftwar.LoginActivity.name_;
+import static com.example.aircraftwar.online.MatchingRoomActivity.in;
+import static com.example.aircraftwar.online.MatchingRoomActivity.out;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,15 +17,23 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
+import com.example.aircraftwar.GameView;
+import com.example.aircraftwar.R;
 import com.example.aircraftwar.aircraft.AbstractAircraft;
 import com.example.aircraftwar.aircraft.HeroAircraft;
 import com.example.aircraftwar.application.ImageManager;
 import com.example.aircraftwar.basic.AbstractFlyingObject;
 import com.example.aircraftwar.bullet.BaseBullet;
+import com.example.aircraftwar.data.online_rank.OnlineRankPage;
 import com.example.aircraftwar.data.rank.RecordDaoImpl;
 import com.example.aircraftwar.factory.AbstractEnemyFactory;
 import com.example.aircraftwar.factory.BossEnemyFactory;
@@ -28,7 +41,7 @@ import com.example.aircraftwar.factory.EliteEnemyFactory;
 import com.example.aircraftwar.factory.MobEnemyFactory;
 import com.example.aircraftwar.prop.AbstractProp;
 import com.example.aircraftwar.prop.BombProp;
-import com.example.aircraftwar.data.rank.RankPage;
+import com.example.aircraftwar.tool.IOUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,14 +50,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class GameView extends SurfaceView{
-
+public class OnlineGameView extends SurfaceView implements SurfaceHolder.Callback {
     private static final String TAG = GameView.class.getSimpleName();
     private Context context ;
+    /**内部类*/
+    private Communication communication = new Communication();
 
-    private int screenWidth = GameActivity.screenWidth;
-    private int screenHeight = GameActivity.screenHeight;
-    private GameActivity gameActivity;
+    private int screenWidth = OnlineGameActivity.screenWidth;
+    private int screenHeight = OnlineGameActivity.screenHeight;
+    private OnlineGameActivity gameActivity;
 
     private Canvas canvas;
     private Paint mPaint;
@@ -52,10 +66,16 @@ public class GameView extends SurfaceView{
 
     public static boolean ifMusicOn = true;
 
-    public static final String HARD = "HARD";
-    public static final String NORMAL = "NORMAL";
-    public static final String EASY = "EASY";
-    public static String mode;
+    /**打印信息*/
+    static int score = 0;
+    int otherScore = 0;
+    int otherHp = 100;
+    final String yourName = name_;
+    String otherName = "";
+    private String message = "";
+
+    /**弹窗*/
+    LoadingDialog loadingDialog;
 
     private int backGroundTop = 0;
 
@@ -90,7 +110,6 @@ public class GameView extends SurfaceView{
     protected int nextDifficultyDuration = 10_000;
 
     public boolean gameOverFlag = false;
-    public static int score = 0;
     private int time = 0;
     /**
      * 敌机产生周期（ms)
@@ -117,32 +136,42 @@ public class GameView extends SurfaceView{
     private int cycleDuration = 600;
     private int cycleTime = 0;
 
-    public GameView(Context context, String mode){
+    /**用来和UI线程传递消息*/
+    @SuppressLint("HandlerLeak")
+    private Handler handler1 = new Handler() {
+        @SuppressLint("HandlerLeak")
+        @Override
+        public void handleMessage(Message msg) {
+            //发送队友阵亡
+            if (msg.what == 1) {
+                Toast.makeText(context,"队友已经阵亡", Toast.LENGTH_SHORT).show();
+            }
+            //加载弹窗
+            if(msg.what == 2){
+                loadingDialog = new LoadingDialog(context, "等待队友完成游戏。。。");
+//                loadingDialog.setImg(R.id.img2);
+                loadingDialog.show();
+            }
+
+            if(msg.what == 3){
+                loadingDialog.dismiss();
+            }
+        }
+    };
+
+
+    public OnlineGameView(Context context) {
         super(context);
         this.context = context;
-        this.gameActivity = (GameActivity) context;
+        this.gameActivity = (OnlineGameActivity) context;
 
         this.context = context;
-        this.gameActivity = (GameActivity) context;
+        this.gameActivity = (OnlineGameActivity) context;
 
         mPaint = new Paint();
         mSurfaceHolder = getHolder();
+        mSurfaceHolder.addCallback(this);
         loadingImg();
-
-        // 设定模式
-        GameView.mode = mode;
-        switch (mode) {
-            case EASY:
-                this.setBackgroundImage("bg");
-                break;
-            case NORMAL:
-                this.setBackgroundImage("bg2");
-                break;
-            case HARD:
-                this.setBackgroundImage("bg3");
-                break;
-            default:
-        }
 
         // 获取英雄机
         heroAircraft = HeroAircraft.getInstance();
@@ -159,10 +188,8 @@ public class GameView extends SurfaceView{
             return t;
         };
         executorService = new ScheduledThreadPoolExecutor(1, gameThread);
-    }
 
-    public GameView(Context context){
-        this(context, NORMAL);
+        this.setFocusable(true);
     }
 
     /**
@@ -262,6 +289,96 @@ public class GameView extends SurfaceView{
 
     }
 
+
+    @Override
+    public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
+        communicateToServer();
+    }
+
+    /**和服务器交互*/
+    private void communicateToServer(){
+        sendMesToYourself(yourName);
+        otherName = readMesFromMyself();
+        communication.start();
+
+    }
+
+    @Override
+    public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder, int format, int width, int height) {
+        screenWidth= width;
+        screenHeight = height;
+    }
+
+    @Override
+    public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {
+
+    }
+
+    /**与自己的服务器交互消息*/
+    private void sendMesToYourself(String mes){
+        IOUtil.writeString(out, mes);
+    }
+    private String readMesFromMyself(){
+        return IOUtil.readString(in);
+    }
+    /**给UI线程发消息*/
+    private void sendMesToUI(int mes){
+        //和UI线程传递消息
+        Message msg;
+        msg = new Message();
+        msg.what = mes;
+        handler1.sendMessage(msg);
+    }
+
+    /**开启多线程来交互数据*/
+    class Communication extends Thread{
+        boolean stop = false;
+        int i=0;
+        @Override
+        public void run(){
+            while (!this.stop){
+                synchronized (this){
+                    Log.i(gameOverFlag+"", "!!!!!!!!!!!!!!!!!!!!");//ToDO
+
+                    if(gameOverFlag && i==0){
+                        Log.i(TAG, "you dead");
+                        sendMesToYourself("DIE");
+                        sendMesToUI(2);
+                        i++;
+                        Log.i(TAG, "DIE msg sent");
+
+                    }else {
+                        sendMesToYourself(String.valueOf(score)+"!"+String.valueOf(heroAircraft.getHp()));
+                    }
+
+                    message = readMesFromMyself();
+
+                    //队友阵亡
+                    if(message != null){
+                        if(message.equals("DIE")){
+                            //Toast(给自己发结束消息"队友已阵亡,加油!!")
+                            sendMesToUI(1);
+                        }else if(message.equals("OQUIT")){
+
+                        }
+                        else if(message.equals("OVER")){
+                            sendMesToUI(3);
+                            startRankPage();
+                            this.stop = true;
+                        }
+                        else{
+                            otherScore = Integer.parseInt(message.split("!")[0]);
+                            otherHp = Integer.parseInt(message.split("!")[1]);
+                        }
+                    }else{
+                        Log.i(TAG, "收到空消息！");
+                        this.stop = true;
+                        gameOverFlag = true;
+                    }
+                }
+            }
+        }
+    }
     /**
      * 根据以下规则产生敌机：
      *  boss战中，不产生敌机；
@@ -286,14 +403,7 @@ public class GameView extends SurfaceView{
                 bossBattle = true;
                 nextBossScore += nextBossDuration;
 
-                // 困难模式boss机血量叠加
-                if(mode.equals(HARD)) {
-                    bossHp += 250;
-                    enemyFactory = new BossEnemyFactory(bossHp);
-                } else {
-                    enemyFactory = new BossEnemyFactory();
-                }
-
+                enemyFactory = new BossEnemyFactory();
                 enemyAircrafts.add(enemyFactory.createEnemy());
                 // boss机出现，bgm改变
                 gameActivity.myBinder.playBossBgm();
@@ -600,25 +710,39 @@ public class GameView extends SurfaceView{
     }
 
     private void drawScoreAndLife(Canvas canvas) {
-        int x = 30;
-        int y = 75;
+        //打印自己的信息
+        int x = 15;
+        int y = 50;
         mPaint.setColor(Color.RED);
-        Typeface font = Typeface.create(Typeface.SANS_SERIF,Typeface.BOLD);
-        mPaint.setTypeface(font);
-        mPaint.setTextSize(66);
+        mPaint.setTypeface(Typeface.SANS_SERIF);
+        mPaint.setTextSize(50);
+        canvas.drawText("我:  " + yourName, x, y,mPaint);
+        y += 55;
+        canvas.drawText("SCORE:" + this.score, x, y,mPaint);
+        y = y + 55;
+        canvas.drawText("LIFE:" + heroAircraft.getHp(), x, y,mPaint);
 
-        canvas.drawText("SCORE:" + this.score, x, y, mPaint);
-        y = y + 70;
-        canvas.drawText("LIFE:" + this.heroAircraft.getHp(), x, y, mPaint);
+
+        //打印别人的信息
+        int x_ = screenWidth-300;
+        int y_ = 50;
+        mPaint.setColor(Color.RED);
+        mPaint.setTypeface(Typeface.SANS_SERIF);
+        mPaint.setTextSize(50);
+        canvas.drawText("队友:  " + otherName, x_, y_,mPaint);
+        y_ += 55;
+        canvas.drawText("SCORE:" + this.otherScore, x_, y_,mPaint);
+        y_ = y_ + 55;
+        canvas.drawText("LIFE:" + otherHp, x_, y_,mPaint);
     }
 
     /**开始排行榜界面*/
     public void startRankPage(){
-        RecordDaoImpl.rankDataFile = name_ + "RankData_"+mode+".txt";
+        RecordDaoImpl.rankDataFile = name_ + "RankData_Online"+".txt";
         Intent intent = new Intent();
         Bundle bundle = new Bundle();
-        intent.setClass(context, RankPage.class);
-        bundle.putInt("score", score);
+        intent.setClass(context, OnlineRankPage.class);
+        bundle.putString("this", yourName+"!"+otherName+"!"+score+"!"+otherScore);
         intent.putExtras(bundle);
         context.startActivity(intent);
     }
